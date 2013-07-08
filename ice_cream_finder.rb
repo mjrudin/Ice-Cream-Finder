@@ -33,6 +33,15 @@ class IceCreamFinder
     @ice_cream_places = parse_place(RestClient.get(formulate_place_search))
   end
 
+  def formulate_geocode_search(address)
+    Addressable::URI.new(
+      :scheme => "https",
+      :host => "maps.googleapis.com",
+      :path => "maps/api/geocode/json",
+      :query_values => {:address => address,
+                        :sensor => false}).to_s
+  end
+
   def geocode_address(start)
     parse_geocode(RestClient.get(start))
   end
@@ -43,6 +52,17 @@ class IceCreamFinder
     "#{location["lat"]},#{location["lng"]}"
   end
 
+  def formulate_place_search
+    Addressable::URI.new(
+      :scheme => "https",
+      :host => "maps.googleapis.com",
+      :path => "maps/api/place/nearbysearch/json",
+      :query_values => {:key => API::KEY,
+                        :location => @lat_lng,
+                        :sensor => false,
+                        :keyword => "ice cream",
+                        :rankby => "distance"}).to_s
+  end
 
   def parse_place(json)
     hash = JSON.parse(json)
@@ -85,25 +105,7 @@ class IceCreamFinder
       Nokogiri::HTML(step["html_instructions"]).text
     end
   end
-
-  def formulate_geocode_search(address)
-    Addressable::URI.new(
-      :scheme => "https",
-      :host => "maps.googleapis.com",
-      :path => "maps/api/geocode/json",
-      :query_values => {:address => address,
-                        :sensor => false}).to_s
-  end
-
-  def formulate_place_search
-    Addressable::URI.new(
-      :scheme => "https",
-      :host => "maps.googleapis.com",
-      :path => "maps/api/place/nearbysearch/json",
-      :query_values => {:key => API::KEY,
-                        :location => @lat_lng,
-                        :sensor => false,
-                        :keyword => "ice cream",
-                        :rankby => "distance"}).to_s
-  end
 end
+
+#Sample irb call:
+#load 'ice_cream_finder.rb'; IceCreamFinder.run("770 Broadway")
